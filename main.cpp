@@ -220,15 +220,22 @@ int main()
             if(state == 2)
             {
                 Rect r = tileToRect(cursor.x,cursor.y);
-                SDL_Rect r2 = rectToSDL_Rect(shiftFromPlayer(&r,&player));
+                r = shiftFromPlayer(&r,&player);
+                SDL_Rect r2 = rectToSDL_Rect(r);
                 SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0);
                 SDL_RenderDrawRect(renderer, &r2);
                 int x,y;
                 SDL_GetMouseState(&x,&y);
-                SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0);
                 SDL_Rect r3 = {x-5,y-5,10,10};
                 SDL_RenderDrawRect(renderer, &r3);
+                Vector v1 = {350,250};
+                Vector v2 = {x-350,y-250};
+                Vector contact, normal;
+                double time;
+                if(collideRayRect(&v1,&v2,&r,&contact,&normal,&time) && time < 1.0)
+                    SDL_SetRenderDrawColor(renderer, 255, 255, 0, 0);
                 SDL_RenderDrawLine(renderer,x,y,350,250);
+                SDL_RenderDrawLine(renderer,contact.x,contact.y,contact.x+(normal.x*10),contact.y+(normal.y*10));
             }
         }
 

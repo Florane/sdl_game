@@ -1,3 +1,4 @@
+#include <iostream>
 #include "rect.hpp"
 
 //математика для коллизий
@@ -70,6 +71,14 @@ Vector* subVectorNumber(const Vector* v1, const double* v2)
     return &v;
 }
 
+Vector* multVectorNumber(const Vector* v1, const double* v2)
+{
+    static Vector v;
+    v.x = v1->x * (*v2);
+    v.y = v1->y * (*v2);
+    return &v;
+}
+
 bool collidePointRect(const Vector* point, const Rect* rect)
 {
     return (point->x > rect->pos.x &&
@@ -104,9 +113,9 @@ bool collideRayRect(const Vector* origin, const Vector* direction, const Rect* t
     *nearTime = max(near.x,near.y);
     double farTime = min(far.x,far.y);
 
-    if(farTime > 0) return false;
+    if(farTime < 0) return false;
 
-    contact = multVectors(addVectorNumber(origin,nearTime),direction);
+    *contact = *addVectors(multVectorNumber(direction,nearTime),origin);
     if(near.x > near.y)
         if(invert.x < 0)
             *normal = {1,0};
