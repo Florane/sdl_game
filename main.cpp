@@ -17,8 +17,9 @@
 
 const int SCR_WIDTH = 800;
 const int SCR_HEIGHT = 600;
-const int TILES_COUNT = 2;
+const int TILES_COUNT = 3;
 const int KEYS = 4+1+4+10;
+const bool debug = false;
 
 void drawTilemap(SDL_Renderer* renderer, Tilemap* tilemap, SDL_Texture** tiles, Player* player)
 {
@@ -28,7 +29,7 @@ void drawTilemap(SDL_Renderer* renderer, Tilemap* tilemap, SDL_Texture** tiles, 
         {
             if(tilemap->tiles[x][y] != 0)
             {
-                Rect r = tileToRect(x,y);
+                 Rect r = tileToRect(x,y);
                 SDL_Rect rect = rectToSDL_Rect(shiftFromPlayer(&r, player));
                 drawTexture(renderer, tiles[(tilemap->tiles[x][y])-1], &rect);
             }
@@ -53,7 +54,7 @@ void drawButtons(SDL_Renderer* renderer, Buttons* buttons, SDL_Texture**buttonTe
     }
 }
 
-int main()
+int main(int argc, char** argv)
 {
     //инициализация
     SDL_Window* window = NULL;
@@ -87,6 +88,7 @@ int main()
     SDL_Texture* tiles[TILES_COUNT];
     loadTexture("textures/tiles/land.bmp",renderer,&tiles[0]);
     loadTexture("textures/tiles/grass.bmp",renderer,&tiles[1]);
+    loadTexture("textures/tiles/box.bmp", renderer, &tiles[2]);
 
     Buttons buttons;
     initButtons(&buttons,SCR_WIDTH-200,SCR_HEIGHT-40);
@@ -95,7 +97,6 @@ int main()
     loadTexture("textures/buttons/logo.bmp",renderer,&buttonTextures[0]);
     loadTexture("textures/buttons/button1.bmp",renderer,&buttonTextures[1]);
     loadTexture("textures/buttons/button2.bmp",renderer,&buttonTextures[2]);
-    loadTexture("textures/buttons/button3.bmp",renderer,&buttonTextures[3]);
 
     //загружаем карту
     Tilemap tilemap;
@@ -151,19 +152,21 @@ int main()
             {
                 buttons.selected--;
                 if(buttons.selected < 1)
-                    buttons.selected = 3;
+                    buttons.selected = 2;
                 pressed[2] = false;
             }
             else if(pressed[3])
             {
                 buttons.selected++;
-                if(buttons.selected > 3)
+                if(buttons.selected > 2)
                     buttons.selected = 1;
                 pressed[3] = false;
             }
             else if(pressed[4])
             {
                 state = buttons.selected;
+                if (state == 1 && debug)
+                    state = 2;
             }
         }
         //проверка физики
