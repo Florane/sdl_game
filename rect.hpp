@@ -32,6 +32,10 @@ Vector* subVectors(const Vector* v1, const Vector* v2);
 ///возвращает Vector - вектор, где координаты равны произведению координат аргументов
 Vector* multVectors(const Vector* v1, const Vector* v2);
 
+Vector* addVectorNumber(const Vector* v1, const double* v2);
+Vector* subVectorNumber(const Vector* v1, const double* v2);
+Vector* multVectorNumber(const Vector* v1, const double* v2);
+
 //проверить пересечение двух прямоугольников
 ///v1 - указатель на прямоугольник
 ///v2 - указатель на прямоугольник

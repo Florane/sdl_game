@@ -103,6 +103,7 @@ bool collideRayRect(const Vector* origin, const Vector* direction, const Rect* t
     Vector invert = {1.0/direction->x,1.0/direction->y};
     Vector near = *multVectors(subVectors(&target->pos,origin),&invert);
     Vector far = *multVectors(subVectors(addVectors(&target->pos,&target->size),origin),&invert);
+    //std::cout << near.x << " " << near.y << " " << far.x << " " << far.y << std::endl;
 
     if(far.x != far.x || far.y != far.y || near.x != near.x || near.y != near.y) return false;
     if(near.x > far.x) swap(&near.x,&far.x);

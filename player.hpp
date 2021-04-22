@@ -25,3 +25,7 @@ Rect shiftFromPlayer(const Rect* rect, const Player* player);
 ///player - указатель на игрока
 ///keys - нажатые клавиши
 void movePlayer_floaty(Player* player, bool keys[4]);
+
+bool collidePlayerRect(const Player* player, const Rect* rect, Vector* contact, Vector* normal, double* time);
+
+bool resolvePlayerRect(Player* player, const Rect* rect);
