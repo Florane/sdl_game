@@ -42,4 +42,5 @@ Vector multVectorNumber(const Vector& v1, const double& v2);
 ///возвращает bool - пересекаются-ли прямоугольники
 bool collideRectRect(const Rect* r1, const Rect* r2);
 
+//Проверить пересечение отрезка и прямоугольника
 bool collideRayRect(const Vector& origin, const Vector& direction, const Rect& target, Vector& contact, Vector& normal, double& nearTime);

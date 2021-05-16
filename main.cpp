@@ -1,11 +1,14 @@
 #ifdef __linux__
     #include <SDL2/SDL.h>
+    #include <SDL2/SDL_ttf.h>
 #elif _WIN32
     #include <SDL.h>
+    #include <SDL_ttf.h>
 #endif
 
 #include <stdio.h>
 #include <locale.h>
+#include <string.h>
 
 #include "menu.hpp"
 #include "draw.hpp"
@@ -33,6 +36,8 @@ int main(int argc, char** argv)
         return 1;
 	}
 
+    TTF_Init();
+
 	window = SDL_CreateWindow("Test1", 100,100, SCR_WIDTH, SCR_HEIGHT, SDL_WINDOW_SHOWN);
     if (window == NULL)
     {
@@ -48,16 +53,25 @@ int main(int argc, char** argv)
 
     const bool debug_info = true;
     int debug_font_size = 20;
+    TTF_Font* debug_font = TTF_OpenFont("DejaVuSansMono.ttf", debug_font_size*2);
 
     const bool debug_player_info = true;
     const bool debug_physics_info = true;
+    const bool debug_frame_info = true;
 
-    char** debug_info_str = (char**)calloc(1
-        +(debug_player_info ? 3 : 0)
-        ,sizeof(char*));
+    int debug_info_size = 1+(debug_player_info ? 3 : 0)+(debug_physics_info ? 2 : 0)+(debug_frame_info ? 1 : 0);
+    char** debug_info_str = (char**)calloc(debug_info_size,sizeof(char*));
+    for(int i = 0;i < debug_info_size;i++)
+    {
+        debug_info_str[i] = (char*)calloc(64,sizeof(char));
+    }
 
     const bool debug_movement = true;
-    const bool debug_physics = false;
+    const bool debug_physics = true;
+    bool debug_collision = false;
+    Vector debug_normal = {0,0};
+
+    double debug_frame = 0;
 
     //Стартовый экран
     Buttons startScreen;
@@ -121,10 +135,13 @@ int main(int argc, char** argv)
     int timer = 0;
 
     //Мышь
-    Vector mouse, prevMouse;
+    Vector mouse = {0,0}, prevMouse = {0,0};
     char mouseClick = 0;
     while(true)
     {
+        //Начало кадра
+        long long int start = SDL_GetPerformanceCounter();
+
         SDL_Event event;
         SDL_PollEvent(&event);
 		if (event.type == SDL_QUIT || state == -1)
@@ -165,9 +182,9 @@ int main(int argc, char** argv)
         mouse = {x,y};
 
         //Взаимодействие
-        if(state == 0) // Таймер для гравного экрана
+        if(state == 0) // Таймер для главного экрана
         {
-            if(timer >= 150)
+            if(timer >= 75)
             {
                 state = 1;
                 timer = 0;
@@ -249,6 +266,8 @@ int main(int argc, char** argv)
                 state = 2;
                 pressed[5] = -1;
             }
+
+            //Движение
             if(debug_movement)
             {
                 movePlayer_floaty(player,pressed);
@@ -257,6 +276,23 @@ int main(int argc, char** argv)
             {
                 movePlayer_actually(player,pressed);
             }
+
+            //Физика
+            Rect buffer = tileToRect(debug_cursor_pos.x,debug_cursor_pos.y);
+            if(debug_physics)
+            {
+                debug_collision = collidePlayerRect(&player,&buffer);
+            }
+            else
+            {
+                Vector normal = {0,0};
+                debug_collision = resolvePlayerRect(&player,&buffer,normal);
+                if(normal.y == -1)
+                    player.isOnGround = true;
+                debug_normal = normal;
+            }
+
+            //Изменение положения
             stepPlayer(player);
         }
 
@@ -301,20 +337,59 @@ int main(int argc, char** argv)
                         sprintf(c1,"pos x:%.1lf y:%.1lf",player.player.pos.x,player.player.pos.y);
                         sprintf(c2,"mov x:%.1lf y:%.1lf",player.movement.x,player.movement.y);
                         sprintf(c3,"ground: %s",(player.isOnGround ? "true" : "false"));
-                    #elif _WIN32
 
+                        strcpy(*(debug_info_str+debug_str_i),c1);
+                        strcpy(*(debug_info_str+debug_str_i+1),c2);
+                        strcpy(*(debug_info_str+debug_str_i+2),c3);
+                    #elif _WIN32
+                        sprintf_s(c1,"pos x:%.1lf y:%.1lf",player.player.pos.x,player.player.pos.y);
+                        sprintf_s(c2,"mov x:%.1lf y:%.1lf",player.movement.x,player.movement.y);
+                        sprintf_s(c3,"ground: %s",(player.isOnGround ? "true" : "false"));
+
+                        strcpy(*(debug_info_str+debug_str_i),64,c1);
+                        strcpy(*(debug_info_str+debug_str_i+1),64,c2);
+                        strcpy(*(debug_info_str+debug_str_i+2),64,c3);
                     #endif
-                    *(debug_info_str+debug_str_i) = c1;
-                    *(debug_info_str+debug_str_i+1) = c2;
-                    *(debug_info_str+debug_str_i+2) = c3;
                     debug_str_i+=3;
+                }
+                if(debug_physics_info)//Информация о физике
+                {
+                    char c1[64], c2[64];
+                    #ifdef __linux__
+                        sprintf(c1,"collision: %s",(debug_collision ? "true" : "false"));
+                        sprintf(c2,"normal x:%.1lf y:%.1lf",debug_normal.x,debug_normal.y);
+
+                        strcpy(*(debug_info_str+debug_str_i),c1);
+                        strcpy(*(debug_info_str+debug_str_i+1),c2);
+                    #elif _WIN32
+                        sprintf_s(c1,"collision: %s",(debug_collision ? "true" : "false"));
+                        sprintf_2(c2,"normal x:%.1lf y:%.1lf",debug_normal.x,debug_normal.y);
+
+                        strcpy(*(debug_info_str+debug_str_i),64,c1);
+                        strcpy(*(debug_info_str+debug_str_i+1),64,c2);
+                    #endif
+                    debug_str_i+=2;
+                }
+                if(debug_frame_info)//Информация о кадре
+                {
+                    char c1[64];
+                    #ifdef __linux__
+                        sprintf(c1,"frame time: %.1lf",debug_frame);
+
+                        strcpy(*(debug_info_str+debug_str_i),c1);
+                    #elif _WIN32
+                        sprintf_s(c1,"frame time: %.1lf",debug_frame);
+
+                        strcpy(*(debug_info_str+debug_str_i),64,c1);
+                    #endif
+                    debug_str_i+=1;
                 }
                 *(debug_info_str+debug_str_i) = nullptr;
 
                 char** loop = debug_info_str;
                 while(*loop != nullptr)
                 {
-                    drawText(renderer,*loop,0,debug_info_y,debug_font_size);
+                    drawText(renderer,debug_font,*loop,0,debug_info_y,debug_font_size);
                     debug_info_y+=debug_font_size;
                     loop++;
                 }
@@ -322,9 +397,17 @@ int main(int argc, char** argv)
         }
 
         SDL_RenderPresent(renderer);
-        SDL_Delay(10);
+
+        //Окончание кадра
+        long long int end = SDL_GetPerformanceCounter();
+        double elapsedTime = (end-start)/(float)SDL_GetPerformanceFrequency()*1000.0;
+        debug_frame = elapsedTime;
+        if(elapsedTime < 20.0)
+            SDL_Delay((int)(20.0-elapsedTime));
     }
     SDL_DestroyWindow(window);
+    TTF_CloseFont(debug_font);
+    TTF_Quit();
 	SDL_Quit();
 	return 0;
 }

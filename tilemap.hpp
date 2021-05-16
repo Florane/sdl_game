@@ -9,4 +9,5 @@ struct Tilemap
     int** tiles;
 };
 
+//Прямоугольник тайла x,y
 Rect tileToRect(int x,int y);

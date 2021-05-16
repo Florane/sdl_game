@@ -6,8 +6,8 @@
 #endif
 #include "rect.hpp"
 #include "menu.hpp"
-//Draws buttons on screen
+//Отрисовать кнопки на экран
 void drawButtons(SDL_Renderer* renderer, Buttons* buttons, SDL_Texture** buttonTextures);
 
-//Returns button pointed at
+//Возвращает кнопку, выделенную курсором
 int selectButton(Buttons* buttons,const Vector* point);

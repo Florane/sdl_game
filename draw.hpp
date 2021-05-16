@@ -1,5 +1,11 @@
 #pragma once
-#include <SDL2/SDL.h>
+#ifdef __linux__
+    #include <SDL2/SDL.h>
+    #include <SDL2/SDL_ttf.h>
+#elif _WIN32
+    #include <SDL.h>
+    #include <SDL_ttf.h>
+#endif
 #include "rect.hpp"
 
 //Загрузить текстуру из файла BMP
@@ -19,4 +25,5 @@ void drawTexture(SDL_Renderer* renderer, SDL_Texture* texture, const SDL_Rect* r
 ///возвращает SDL_Rect - прямоугольник с теми же координатами
 SDL_Rect rectToSDL_Rect(Rect rect);
 
-void drawText(SDL_Renderer*& renderer, char*& text, int x, int y, int size);
+//Нарисовать текст на экране
+void drawText(SDL_Renderer*& renderer,TTF_Font*& my_font, char*& text, int x, int y, int size);
