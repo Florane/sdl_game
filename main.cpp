@@ -10,11 +10,12 @@
 #include <locale.h>
 #include <string.h>
 
-#include "menu.hpp"
 #include "draw.hpp"
-#include "complex_menu.hpp"
-#include "player.hpp"
 #include "tilemap.hpp"
+#include "player.hpp"
+#include "level.hpp"
+#include "complex_menu.hpp"
+#include "complex_tilemap.hpp"
 
 ///все комменты с тремя слешами удали перед сдачей
 
@@ -67,9 +68,10 @@ int main(int argc, char** argv)
     }
 
     const bool debug_movement = true;
-    const bool debug_physics = true;
+    const bool debug_physics = false;
     bool debug_collision = false;
     Vector debug_normal = {0,0};
+    const bool debug_level = true;
 
     double debug_frame = 0;
 
@@ -114,6 +116,16 @@ int main(int argc, char** argv)
 
     SDL_Texture* playerTexture;
     loadTexture("textures/cat.bmp",renderer,&playerTexture);
+
+    //Уровень
+    Level level;
+    initLevel(level);
+
+    //Текстуры тайлов
+    SDL_Texture** groundTileset = (SDL_Texture**)calloc(3,sizeof(SDL_Texture*));
+    loadTexture("textures/tiles/land.bmp",renderer,groundTileset);
+    loadTexture("textures/tiles/grass.bmp",renderer,groundTileset+1);
+    loadTexture("textures/tiles/box.bmp",renderer,groundTileset+2);
 
     //Проверка нажатых кнопок (char для экономии памяти)
     //0 - стандартное состояние
@@ -247,7 +259,21 @@ int main(int argc, char** argv)
             if(pressed[4] == 1 || mouseClick == 1)
             {
                 if(levelMenu.selected != -1)
+                {
                     state = levelMenu.selected+3;
+                    char c[30];
+                    #ifdef __linux__
+                        sprintf(c,"levels/%d/",levelMenu.selected);
+                    #elif _WIN32
+                        sprintf_s(c,30,"levels/%d/",levelMenu.selected);
+                    #endif
+                    freeLevel(level);
+                    initLevel(level);
+                    if(debug_level)
+                        loadLevel("levels/debug/",level);
+                    else
+                        loadLevel(c,level);
+                }
                 if(pressed[4] == 1)
                     pressed[4] = -1;
                 if(mouseClick == 1)
@@ -318,6 +344,7 @@ int main(int argc, char** argv)
         {
             SDL_Rect playerRect = {350,250,100,100};
             drawTexture(renderer, playerTexture, &playerRect);
+            drawTilemap(renderer, level.ground, player, groundTileset);
 
             if(debug_cursor) //Дебаг курсор
             {

@@ -1,7 +1,7 @@
 RUN=g++
 CFLAGS=-g -c
 LIBRARIES=-lSDL2 -lSDL2_ttf
-SOURCES=rect.cpp menu.cpp draw.cpp complex_menu.cpp player.cpp tilemap.cpp main.cpp
+SOURCES=rect.cpp menu.cpp tilemap.cpp player.cpp level.cpp draw.cpp complex_menu.cpp complex_tilemap.cpp main.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXEC=run
 
