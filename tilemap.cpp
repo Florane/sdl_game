@@ -12,11 +12,6 @@ void freeTilemap(Tilemap& tiles)
 {
     if(tiles.tiles != nullptr)
     {
-        for(int i = 0;i < tiles.sizeX;i++)
-        {
-            if(tiles.tiles[i] != nullptr)
-                free(tiles.tiles[i]);
-        }
         free(tiles.tiles);
     }
 }

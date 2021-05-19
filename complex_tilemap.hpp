@@ -4,7 +4,6 @@
 #elif _WIN32
     #include <SDL.h>
 #endif
-#include "rect.hpp"
 #include "tilemap.hpp"
 #include "player.hpp"
 

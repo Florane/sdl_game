@@ -6,11 +6,13 @@
 void initLevel(Level& level)
 {
     initTilemap(level.ground);
+    initPlatformFactory(level.platforms);
 }
 
 void freeLevel(Level& level)
 {
     freeTilemap(level.ground);
+    freePlatformFactory(level.platforms);
 }
 
 void loadLevel(const char* name, Level& level)
@@ -22,4 +24,12 @@ void loadLevel(const char* name, Level& level)
 
     loadTilemap(groundName,level.ground);
     free(groundName);
+
+    //загрузка тайлов
+    char* platformName = (char*)calloc(strlen(name)+14,sizeof(char));
+    strcpy(platformName,name);
+    strncat(platformName,"platforms.txt",14);
+
+    loadPlatforms(platformName,level.platforms);
+    free(platformName);
 }

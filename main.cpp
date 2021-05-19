@@ -16,6 +16,7 @@
 #include "level.hpp"
 #include "complex_menu.hpp"
 #include "complex_tilemap.hpp"
+#include "complex_platforms.hpp"
 
 ///все комменты с тремя слешами удали перед сдачей
 
@@ -126,6 +127,10 @@ int main(int argc, char** argv)
     loadTexture("textures/tiles/land.bmp",renderer,groundTileset);
     loadTexture("textures/tiles/grass.bmp",renderer,groundTileset+1);
     loadTexture("textures/tiles/box.bmp",renderer,groundTileset+2);
+
+    //Текстура платформы
+    SDL_Texture* platformTexture;
+    loadTexture("textures/platform.bmp",renderer,&platformTexture);
 
     //Проверка нажатых кнопок (char для экономии памяти)
     //0 - стандартное состояние
@@ -304,6 +309,7 @@ int main(int argc, char** argv)
             }
 
             //Физика
+            stepPlatforms(level.platforms);
             Rect buffer = tileToRect(debug_cursor_pos.x,debug_cursor_pos.y);
             if(debug_physics)
             {
@@ -345,6 +351,7 @@ int main(int argc, char** argv)
             SDL_Rect playerRect = {350,250,100,100};
             drawTexture(renderer, playerTexture, &playerRect);
             drawTilemap(renderer, level.ground, player, groundTileset);
+            drawPlatforms(renderer, level.platforms, player, platformTexture);
 
             if(debug_cursor) //Дебаг курсор
             {

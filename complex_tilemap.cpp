@@ -1,5 +1,6 @@
 #include "complex_tilemap.hpp"
 #include "draw.hpp"
+#include "rect.hpp"
 
 void drawTilemap(SDL_Renderer*& renderer, Tilemap& tilemap, Player& player, SDL_Texture** tilemapTextures)
 {
@@ -8,7 +9,7 @@ void drawTilemap(SDL_Renderer*& renderer, Tilemap& tilemap, Player& player, SDL_
     {
         for(int y = 0;y <= 600/TILE_SIZE && y+shiftY < tilemap.sizeY;y++)
         {
-            if(x+shiftX > 0 && y+shiftY > 0)
+            if(x+shiftX >= 0 && y+shiftY >= 0)
                 if(tilemap.tiles[x+shiftX][y+shiftY] > 0)
                 {
                     SDL_Rect drawRect = rectToSDL_Rect(shiftFromPlayer(tileToRect(x+shiftX,y+shiftY),player));

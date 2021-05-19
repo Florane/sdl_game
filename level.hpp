@@ -1,8 +1,10 @@
 #pragma once
 #include "tilemap.hpp"
+#include "platformFactory.hpp"
 
 struct Level{
     Tilemap ground;
+    PlatformFactory platforms;
 };
 
 //Инициализация уровня
