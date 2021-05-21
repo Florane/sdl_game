@@ -17,6 +17,7 @@
 #include "complex_menu.hpp"
 #include "complex_tilemap.hpp"
 #include "complex_platforms.hpp"
+#include "collision.hpp"
 
 ///все комменты с тремя слешами удали перед сдачей
 
@@ -69,8 +70,8 @@ int main(int argc, char** argv)
     }
 
     const bool debug_movement = true;
-    const bool debug_physics = false;
-    bool debug_collision = false;
+    const bool debug_physics = true;
+    bool debug_collision = true;
     Vector debug_normal = {0,0};
     const bool debug_level = true;
 
@@ -313,15 +314,17 @@ int main(int argc, char** argv)
             Rect buffer = tileToRect(debug_cursor_pos.x,debug_cursor_pos.y);
             if(debug_physics)
             {
-                debug_collision = collidePlayerRect(&player,&buffer);
+                Object object1, object2;
+                initObject(object1, player.player, player.movement);
+                initObject(object2, buffer);
+                Vector contact;
+                double time;
+                debug_collision = resolveObjects(object1, object2, contact, debug_normal, time);
+                player.movement = object1.movement;
             }
             else
             {
-                Vector normal = {0,0};
-                debug_collision = resolvePlayerRect(&player,&buffer,normal);
-                if(normal.y == -1)
-                    player.isOnGround = true;
-                debug_normal = normal;
+
             }
 
             //Изменение положения

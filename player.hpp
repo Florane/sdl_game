@@ -1,6 +1,20 @@
 #pragma once
 #include "rect.hpp"
 
+/**
+\defgroup Player_idiot
+@{
+\brief Игрок
+
+Хранение данных и логика для игрока
+*/
+
+///Данные игрока
+/**
+\param player Позиция и размеры игрока
+\param movement Скорость игрока
+\param isOnGround Техническое - стоит ли игрок на земле
+*/
 struct Player
 {
     Rect player;
@@ -8,32 +22,38 @@ struct Player
     bool isOnGround;
 };
 
-//инициализация игрока
-///player - указатель на игрока
+///Инициализация игрока
+/**
+\param player Игрок
+*/
 void initPlayer(Player& player);
 
-//сделать шаг, переместив игрока на вектор скорости
-///player - указатель на игрока
+///Сделать шаг, переместив игрока на вектор скорости
+/**
+\param player Указатель на игрока
+*/
 void stepPlayer(Player& player);
 
-//переместить прямоугольник для отрисовки относительно игрока
-///rect - указатель на рисуемый прямоугольник
-///player - указатель на игрока
-///возвращает Rect - смещенный прямоугольник
+///Переместить прямоугольник для отрисовки относительно игрока
+/**
+\param rect Рисуемый прямоугольник
+\param player Игрок
+\return Rect Смещенный прямоугольник
+*/
 Rect shiftFromPlayer(const Rect& rect, const Player& player);
 
-//перемещать игрока, игнорируя физику
-///player - указатель на игрока
-///keys - нажатые клавиши
+///Перемещать игрока, игнорируя физику
+/**
+\param player Игрок
+\param keys Нажатые клавиши
+*/
 void movePlayer_floaty(Player& player, char* keys);
 
-//перемещать игрока с гравитацией
+///Перемещать игрока с гравитацией
+/**
+\param player Игрок
+\param keys Нажатые клавиши
+*/
 void movePlayer_actually(Player& player, char* keys);
 
-//проверка столкновения игрока
-bool collidePlayerRect(const Player* player, const Rect* rect, Vector& contact, Vector& normal, double& time);
-bool collidePlayerRect(const Player* player, const Rect* rect);
-
-//разрешение столкновения игрока
-bool resolvePlayerRect(Player* player, const Rect* rect);
-bool resolvePlayerRect(Player* player, const Rect* rect, Vector& normal);
+///@}
