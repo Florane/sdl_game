@@ -383,9 +383,9 @@ int main(int argc, char** argv)
                         sprintf_s(c2,"mov x:%.1lf y:%.1lf",player.movement.x,player.movement.y);
                         sprintf_s(c3,"ground: %s",(player.isOnGround ? "true" : "false"));
 
-                        strcpy(*(debug_info_str+debug_str_i),64,c1);
-                        strcpy(*(debug_info_str+debug_str_i+1),64,c2);
-                        strcpy(*(debug_info_str+debug_str_i+2),64,c3);
+                        strcpy_s(*(debug_info_str+debug_str_i),64,c1);
+                        strcpy_s(*(debug_info_str+debug_str_i+1),64,c2);
+                        strcpy_s(*(debug_info_str+debug_str_i+2),64,c3);
                     #endif
                     debug_str_i+=3;
                 }
@@ -402,8 +402,8 @@ int main(int argc, char** argv)
                         sprintf_s(c1,"collision: %s",(debug_collision ? "true" : "false"));
                         sprintf_2(c2,"normal x:%.1lf y:%.1lf",debug_normal.x,debug_normal.y);
 
-                        strcpy(*(debug_info_str+debug_str_i),64,c1);
-                        strcpy(*(debug_info_str+debug_str_i+1),64,c2);
+                        strcpy_s(*(debug_info_str+debug_str_i),64,c1);
+                        strcpy_s(*(debug_info_str+debug_str_i+1),64,c2);
                     #endif
                     debug_str_i+=2;
                 }
@@ -417,7 +417,7 @@ int main(int argc, char** argv)
                     #elif _WIN32
                         sprintf_s(c1,"frame time: %.1lf",debug_frame);
 
-                        strcpy(*(debug_info_str+debug_str_i),64,c1);
+                        strcpy_s(*(debug_info_str+debug_str_i),64,c1);
                     #endif
                     debug_str_i+=1;
                 }
