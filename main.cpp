@@ -328,7 +328,10 @@ int main(int argc, char** argv)
                 initObject(object2, buffer2);
                 setObject(object1,objects,object2);
                 sortObjectStack(objects);
-                debug_collision = resolveObjectStack(object1,objects);
+                int bitData;
+                bitData = resolveObjectStack(object1,objects);
+                debug_collision = bitData%2;
+                player.isOnGround = bitData/2%2;
                 objects.iter = 0;
                 player.movement = object1.movement;
             }

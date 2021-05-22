@@ -22,17 +22,16 @@ void initObject(Object& object)
 
 bool collideObjects(Object& object1, Object& object2, Vector& contact, Vector& normal, double& time)
 {
-    Object _object1 = object1;
-    _object1.movement = subVectors(_object1.movement,object2.movement);
-    if(_object1.movement.x == 0 && _object1.movement.y == 0)
+    object1.movement = subVectors(object1.movement,object2.movement);
+    if(object1.movement.x == 0 && object1.movement.y == 0)
         return false;
 
     Rect expandedTarget;
-    Vector buffer = {_object1.position.size.x/2.0,_object1.position.size.y/2.0};
+    Vector buffer = {object1.position.size.x/2.0,object1.position.size.y/2.0};
     expandedTarget.pos = subVectors(object2.position.pos,buffer);
-    expandedTarget.size = addVectors(object2.position.size,_object1.position.size);
+    expandedTarget.size = addVectors(object2.position.size,object1.position.size);
 
-    if(collideRayRect(addVectors(_object1.position.pos,buffer),_object1.movement,expandedTarget, contact, normal, time))
+    if(collideRayRect(addVectors(object1.position.pos,buffer),object1.movement,expandedTarget, contact, normal, time))
     {
         return (time >= 0.0 && time < 1.0);
     }
@@ -42,13 +41,15 @@ bool collideObjects(Object& object1, Object& object2, Vector& contact, Vector& n
 bool resolveObjects(Object& object1, Object& object2, Vector& contact, Vector& normal, double& time)
 {
     time = 0.0;
+    bool ret = false;
     if(collideObjects(object1,object2,contact,normal,time))
     {
         Vector buffer = {_abs(object1.movement.x)*(1-time),_abs(object1.movement.y)*(1-time)};
         object1.movement = addVectors(object1.movement,multVectors(normal,buffer));
-        return true;
+        ret = true;
     }
-    return false;
+    object1.movement = addVectors(object1.movement,object2.movement);
+    return ret;
 }
 
 void initObjectStack(ObjectStack& objectStack, int size)
@@ -93,15 +94,20 @@ void sortObjectStack(ObjectStack& objectStack)
     qsort(objectStack.distances,objectStack.iter,sizeof(Dist),(int(*) (const void *, const void *)) comp);
 }
 
-bool resolveObjectStack(Object& parent, ObjectStack& objectStack)
+int resolveObjectStack(Object& parent, ObjectStack& objectStack)
 {
-    bool isOnGround = false;
+    int bitData = 0;
     for(int i = 0;i < objectStack.iter;i++)
     {
+        int buffer = 0;
         int j = objectStack.distances[i].position;
         Vector contact, normal; double time = 0.0;
         if(resolveObjects(parent,objectStack.objects[j],contact,normal,time))
-            isOnGround = true;
+            buffer += 1;
+        if(normal.y == -1 && buffer != 0)
+            buffer += 2;
+        if(buffer > bitData)
+            bitData = buffer;
     }
-    return isOnGround;
+    return bitData;
 }

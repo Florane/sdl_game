@@ -95,6 +95,6 @@ void setObject(Object& parent, ObjectStack& objectStack, Object& object);
 */
 void sortObjectStack(ObjectStack& objectStack);
 
-bool resolveObjectStack(Object& parent, ObjectStack& objectStack);
+int resolveObjectStack(Object& parent, ObjectStack& objectStack);
 
 ///@}
