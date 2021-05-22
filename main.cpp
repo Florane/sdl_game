@@ -18,6 +18,7 @@
 #include "complex_tilemap.hpp"
 #include "complex_platforms.hpp"
 #include "collision.hpp"
+#include "complex_collision.hpp"
 
 ///все комменты с тремя слешами удали перед сдачей
 
@@ -60,9 +61,11 @@ int main(int argc, char** argv)
 
     const bool debug_player_info = true;
     const bool debug_physics_info = true;
+    const bool debug_physics_stack_info = true;
     const bool debug_frame_info = true;
 
-    int debug_info_size = 1+(debug_player_info ? 3 : 0)+(debug_physics_info ? 2 : 0)+(debug_frame_info ? 1 : 0);
+    int debug_info_size = 1+(debug_player_info ? 3 : 0)+(debug_physics_info ? 2 : 0)+(debug_physics_stack_info ? 2 : 0)
+    +(debug_frame_info ? 1 : 0);
     char** debug_info_str = (char**)calloc(debug_info_size,sizeof(char*));
     for(int i = 0;i < debug_info_size;i++)
     {
@@ -73,6 +76,7 @@ int main(int argc, char** argv)
     const bool debug_physics = true;
     bool debug_collision = true;
     Vector debug_normal = {0,0};
+    int debug_stack_iter = 0;
     const bool debug_level = true;
 
     double debug_frame = 0;
@@ -319,19 +323,15 @@ int main(int argc, char** argv)
             Rect buffer2 = tileToRect(debug_cursor_pos.x+2,debug_cursor_pos.y);
             if(debug_physics)
             {
-                Object object1, object2;
+                Object object1;
                 initObject(object1, player.player, player.movement);
-                initObject(object2, buffer);
-                setObject(object1,objects,object2);
-                initObject(object2, buffer1);
-                setObject(object1,objects,object2);
-                initObject(object2, buffer2);
-                setObject(object1,objects,object2);
+                tilemapToStack(object1,level.ground,objects);
                 sortObjectStack(objects);
                 int bitData;
                 bitData = resolveObjectStack(object1,objects);
                 debug_collision = bitData%2;
                 player.isOnGround = bitData/2%2;
+                debug_stack_iter = objects.iter;
                 objects.iter = 0;
                 player.movement = object1.movement;
             }
@@ -413,7 +413,25 @@ int main(int argc, char** argv)
                         strcpy(*(debug_info_str+debug_str_i+1),c2);
                     #elif _WIN32
                         sprintf_s(c1,"collision: %s",(debug_collision ? "true" : "false"));
-                        sprintf_2(c2,"normal x:%.1lf y:%.1lf",debug_normal.x,debug_normal.y);
+                        sprintf_s(c2,"normal x:%.1lf y:%.1lf",debug_normal.x,debug_normal.y);
+
+                        strcpy_s(*(debug_info_str+debug_str_i),64,c1);
+                        strcpy_s(*(debug_info_str+debug_str_i+1),64,c2);
+                    #endif
+                    debug_str_i+=2;
+                }
+                if(debug_physics_stack_info)
+                {
+                    char c1[64], c2[64];
+                    #ifdef __linux__
+                        sprintf(c1,"stack size: %d",debug_stack_iter);
+                        sprintf(c2,"stack max: %d",objects.size);
+
+                        strcpy(*(debug_info_str+debug_str_i),c1);
+                        strcpy(*(debug_info_str+debug_str_i+1),c2);
+                    #elif _WIN32
+                        sprintf_s(c1,"stack size: %d",debug_stack_iter);
+                        sprintf_s(c2,"stack max: %d",objects.size);
 
                         strcpy_s(*(debug_info_str+debug_str_i),64,c1);
                         strcpy_s(*(debug_info_str+debug_str_i+1),64,c2);
