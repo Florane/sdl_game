@@ -123,6 +123,9 @@ int main(int argc, char** argv)
     Level level;
     initLevel(level);
 
+    ObjectStack objects;
+    initObjectStack(objects,2);
+
     //Текстуры тайлов
     SDL_Texture** groundTileset = (SDL_Texture**)calloc(3,sizeof(SDL_Texture*));
     loadTexture("textures/tiles/land.bmp",renderer,groundTileset);
@@ -312,14 +315,21 @@ int main(int argc, char** argv)
             //Физика
             stepPlatforms(level.platforms);
             Rect buffer = tileToRect(debug_cursor_pos.x,debug_cursor_pos.y);
+            Rect buffer1 = tileToRect(debug_cursor_pos.x+1,debug_cursor_pos.y);
+            Rect buffer2 = tileToRect(debug_cursor_pos.x+2,debug_cursor_pos.y);
             if(debug_physics)
             {
                 Object object1, object2;
                 initObject(object1, player.player, player.movement);
                 initObject(object2, buffer);
-                Vector contact;
-                double time;
-                debug_collision = resolveObjects(object1, object2, contact, debug_normal, time);
+                setObject(object1,objects,object2);
+                initObject(object2, buffer1);
+                setObject(object1,objects,object2);
+                initObject(object2, buffer2);
+                setObject(object1,objects,object2);
+                sortObjectStack(objects);
+                debug_collision = resolveObjectStack(object1,objects);
+                objects.iter = 0;
                 player.movement = object1.movement;
             }
             else

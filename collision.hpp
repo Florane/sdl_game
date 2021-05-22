@@ -49,6 +49,12 @@ bool collideObjects(Object& object1, Object& object2, Vector& contact, Vector& n
 */
 bool resolveObjects(Object& object1, Object& object2, Vector& contact, Vector& normal, double& time);
 
+struct Dist
+{
+    double distance;
+    int position;
+};
+
 ///Список объектов
 /**
 \param objects Массив объектов
@@ -59,25 +65,36 @@ struct ObjectStack
 {
     Object* objects;
     int size, iter;
+    Dist* distances;
 };
 
 ///Инициализация списка объектов
 /**
 \param objectStack Список объектов
 */
-void initObjectStack(ObjectStack& objectStack);
+void initObjectStack(ObjectStack& objectStack, int size);
+
+///Расстояние между двумя объектами
+/**
+\param parent Динамический объект
+\param object Статический объект
+*/
+double getDistance(Object& parent, Object& object);
 
 ///Добавить объект в конец списка
 /**
+\param parent Динамический объект
 \param objectStack Список объектов
-\param object Объект
+\param object Статический объект
 */
-void setObject(ObjectStack& objectStack, Object& object);
+void setObject(Object& parent, ObjectStack& objectStack, Object& object);
 
 ///Отсортировать список
 /**
 \param objectStack Список объектов
 */
-void sortObjectList(ObjectStack& objectStack);
+void sortObjectStack(ObjectStack& objectStack);
+
+bool resolveObjectStack(Object& parent, ObjectStack& objectStack);
 
 ///@}
