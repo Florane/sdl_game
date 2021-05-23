@@ -28,6 +28,13 @@ struct Player
 */
 void initPlayer(Player& player);
 
+///Загрузить позицию игрока из файла
+/**
+\param name Имя файла
+\param player Игрок
+*/
+void loadPlayer(const char* name, Player& player);
+
 ///Сделать шаг, переместив игрока на вектор скорости
 /**
 \param player Указатель на игрока

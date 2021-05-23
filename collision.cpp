@@ -22,17 +22,20 @@ void initObject(Object& object)
 
 bool collideObjects(Object& object1, Object& object2, Vector& contact, Vector& normal, double& time)
 {
+    //Если объекты не движутся - они не пересекутся
     if(object1.movement.x == 0 && object1.movement.y == 0)
         return false;
 
+    //Расширить прямоугольник до центра динамического объекта (иначе динамический объект остановится на границе статического своим центром)
     Rect expandedTarget;
     Vector buffer = {object1.position.size.x/2.0,object1.position.size.y/2.0};
     expandedTarget.pos = subVectors(object2.position.pos,buffer);
     expandedTarget.size = addVectors(object2.position.size,object1.position.size);
 
-    bool res = collideRayRect(addVectors(object1.position.pos,buffer),object1.movement,expandedTarget, contact, normal, time);
-    if(res)
+    //Найти точку соприкосновения с расширенным прямоугольником
+    if(collideRayRect(addVectors(object1.position.pos,buffer),object1.movement,expandedTarget, contact, normal, time))
     {
+        //Расстояние до объекта может быть больше длины вектора скорости - столкновения не произойдет, хотя будет пересечение с лучом
         return (time >= 0.0 && time < 1.0);
     }
     return false;
@@ -41,12 +44,19 @@ bool collideObjects(Object& object1, Object& object2, Vector& contact, Vector& n
 bool resolveObjects(Object& object1, Object& object2, Vector& contact, Vector& normal, double& time)
 {
     time = 0.0;
+
+    //Добавляем обратную скорость статического объекта к динамическому - относительно движущего статического объекта, стоящий на маесте динамический объект движется
     object1.movement = subVectors(object1.movement,object2.movement);
+
+    //Проверяем столкновение
     bool ret = collideObjects(object1,object2,contact,normal,time);
     if(ret)
     {
+        //Вычисляем длину, на которую нужно изменить скорость динамического объекта, и прилагаем её по нормали столкновения
         Vector buffer = {_abs(object1.movement.x)*(1-time),_abs(object1.movement.y)*(1-time)};
         object1.movement = addVectors(object1.movement,multVectors(normal,buffer));
+
+        //Добавляем скорость по x если нормаль направленна вверх - динамический объект стоит на статическом.
         if(normal.y == -1)
             object1.movement.x += object2.movement.x;
     }
@@ -56,9 +66,12 @@ bool resolveObjects(Object& object1, Object& object2, Vector& contact, Vector& n
 
 void initObjectStack(ObjectStack& objectStack, int size)
 {
+    //Заполнить массив объектов нолями
     objectStack.objects = (Object*)calloc(size,sizeof(Object));
     objectStack.size = size;
     objectStack.iter = 0;
+
+    //Заполнить массив расстояний нолями
     objectStack.distances = (Dist*)calloc(size,sizeof(Dist));
 }
 
@@ -105,10 +118,13 @@ int resolveObjectStack(Object& parent, ObjectStack& objectStack)
         int j = objectStack.distances[i].position;
         Vector contact, normal; double time = 0.0;
         if(resolveObjects(parent,objectStack.objects[j],contact,normal,time))
+        {
             buffer += 1;
+            buffer += i*4;
+        }
         if(normal.y == -1 && buffer != 0)
             buffer += 2;
-        if(buffer > bitData)
+        if(buffer%4 > bitData%4)
             bitData = buffer;
     }
     return bitData;

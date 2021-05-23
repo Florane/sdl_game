@@ -1,11 +1,26 @@
 #include "player.hpp"
-#include <iostream>
+#include <stdio.h>
 
 void initPlayer(Player& player)
 {
-    player.player = {100,0,100,100};
+    player.player = {0,0,100,100};
     player.movement = {0,0};
     player.isOnGround = false;
+}
+
+void loadPlayer(const char* name, Player& player)
+{
+    FILE* file;
+    #ifdef __linux__
+        file = fopen(name,"r");
+        fscanf(file,"%lf",&player.player.pos.x);
+        fscanf(file,"%lf",&player.player.pos.y);
+    #elif _WIN32
+        fopen_s(&file,name,"r");
+        fscanf_s(file,"%lf",&player.player.pos.x);
+        fscanf_s(file,"%lf",&player.player.pos.y);
+    #endif
+    fclose(file);
 }
 
 void stepPlayer(Player& player)

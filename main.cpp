@@ -116,19 +116,19 @@ int main(int argc, char** argv)
     loadTexture("textures/buttons/levels/3.bmp",renderer,levelMenuTextures+3);
     loadTexture("textures/buttons/levels/4.bmp",renderer,levelMenuTextures+4);
 
-    //Игрок
-    Player player;
-    initPlayer(player);
-
-    SDL_Texture* playerTexture;
-    loadTexture("textures/cat.bmp",renderer,&playerTexture);
-
     //Уровень
     Level level;
     initLevel(level);
 
     ObjectStack objects;
     initObjectStack(objects,2);
+
+    ObjectStack exits;
+    initObjectStack(exits,2);
+
+    //Игрок
+    SDL_Texture* playerTexture;
+    loadTexture("textures/cat.bmp",renderer,&playerTexture);
 
     //Текстуры тайлов
     SDL_Texture** groundTileset = (SDL_Texture**)calloc(3,sizeof(SDL_Texture*));
@@ -139,6 +139,10 @@ int main(int argc, char** argv)
     //Текстура платформы
     SDL_Texture* platformTexture;
     loadTexture("textures/platform.bmp",renderer,&platformTexture);
+
+    //Текстура выхода
+    SDL_Texture* exitTexture;
+    loadTexture("textures/exit.bmp",renderer,&exitTexture);
 
     //Проверка нажатых кнопок (char для экономии памяти)
     //0 - стандартное состояние
@@ -309,16 +313,16 @@ int main(int argc, char** argv)
             //Движение
             if(debug_movement)
             {
-                movePlayer_floaty(player,pressed);
+                movePlayer_floaty(level.player,pressed);
             }
             else
             {
-                movePlayer_actually(player,pressed);
+                movePlayer_actually(level.player,pressed);
             }
 
             //Физика
             Object object1;
-            initObject(object1, player.player, player.movement);
+            initObject(object1, level.player.player, level.player.movement);
 
             tilemapToStack(object1,level.ground,objects);
             platformsToStack(object1,level.platforms,objects);
@@ -329,18 +333,26 @@ int main(int argc, char** argv)
             bitData = resolveObjectStack(object1,objects);
 
             debug_collision = bitData%2;
-            player.isOnGround = bitData/2%2;
+            level.player.isOnGround = bitData/2%2;
             debug_stack_iter = objects.iter;
             objects.iter = 0;
             if(!debug_physics)
             {
+                level.player.movement = object1.movement;
+            }
 
-                player.movement = object1.movement;
+            platformsToStack(object1,level.exit,objects);
+            sortObjectStack(objects);
+
+            bitData = resolveObjectStack(object1,objects);
+            if(bitData>0)
+            {
+                state = 2;
             }
 
             //Изменение положения
             stepPlatforms(level.platforms);
-            stepPlayer(player);
+            stepPlayer(level.player);
         }
 
         SDL_SetRenderDrawColor(renderer, 51, 153, 255, 0);
@@ -365,12 +377,13 @@ int main(int argc, char** argv)
         {
             SDL_Rect playerRect = {350,250,100,100};
             drawTexture(renderer, playerTexture, &playerRect);
-            drawTilemap(renderer, level.ground, player, groundTileset);
-            drawPlatforms(renderer, level.platforms, player, platformTexture);
+            drawTilemap(renderer, level.ground, level.player, groundTileset);
+            drawPlatforms(renderer, level.platforms, level.player, platformTexture);
+            drawPlatforms(renderer, level.exit, level.player, exitTexture);
 
             if(debug_cursor) //Дебаг курсор
             {
-                SDL_Rect cursorRect = rectToSDL_Rect(shiftFromPlayer(tileToRect(debug_cursor_pos.x,debug_cursor_pos.y),player));
+                SDL_Rect cursorRect = rectToSDL_Rect(shiftFromPlayer(tileToRect(debug_cursor_pos.x,debug_cursor_pos.y),level.player));
                 SDL_SetRenderDrawColor(renderer, 255, 153, 51, 0);
                 SDL_RenderDrawRect(renderer, &cursorRect);
             }
@@ -383,17 +396,17 @@ int main(int argc, char** argv)
                 {
                     char c1[64], c2[64], c3[14];
                     #ifdef __linux__
-                        sprintf(c1,"pos x:%.1lf y:%.1lf",player.player.pos.x,player.player.pos.y);
-                        sprintf(c2,"mov x:%.1lf y:%.1lf",player.movement.x,player.movement.y);
-                        sprintf(c3,"ground: %s",(player.isOnGround ? "true" : "false"));
+                        sprintf(c1,"pos x:%.1lf y:%.1lf",level.player.player.pos.x,level.player.player.pos.y);
+                        sprintf(c2,"mov x:%.1lf y:%.1lf",level.player.movement.x,level.player.movement.y);
+                        sprintf(c3,"ground: %s",(level.player.isOnGround ? "true" : "false"));
 
                         strcpy(*(debug_info_str+debug_str_i),c1);
                         strcpy(*(debug_info_str+debug_str_i+1),c2);
                         strcpy(*(debug_info_str+debug_str_i+2),c3);
                     #elif _WIN32
-                        sprintf_s(c1,"pos x:%.1lf y:%.1lf",player.player.pos.x,player.player.pos.y);
-                        sprintf_s(c2,"mov x:%.1lf y:%.1lf",player.movement.x,player.movement.y);
-                        sprintf_s(c3,"ground: %s",(player.isOnGround ? "true" : "false"));
+                        sprintf_s(c1,"pos x:%.1lf y:%.1lf",level.player.player.pos.x,level.player.player.pos.y);
+                        sprintf_s(c2,"mov x:%.1lf y:%.1lf",level.player.movement.x,level.player.movement.y);
+                        sprintf_s(c3,"ground: %s",(level.player.isOnGround ? "true" : "false"));
 
                         strcpy_s(*(debug_info_str+debug_str_i),64,c1);
                         strcpy_s(*(debug_info_str+debug_str_i+1),64,c2);

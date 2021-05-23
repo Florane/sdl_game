@@ -49,6 +49,11 @@ bool collideObjects(Object& object1, Object& object2, Vector& contact, Vector& n
 */
 bool resolveObjects(Object& object1, Object& object2, Vector& contact, Vector& normal, double& time);
 
+///Техническое. Расстояние до объекта position
+/**
+\param distance Расстояние до объекта
+\param position ID объекта
+*/
 struct Dist
 {
     double distance;
@@ -60,6 +65,7 @@ struct Dist
 \param objects Массив объектов
 \param size Максимальный размер списка
 \param iter Последний доступный элемент списка
+\param distances Массив расстояний до объектов
 */
 struct ObjectStack
 {
@@ -71,6 +77,7 @@ struct ObjectStack
 ///Инициализация списка объектов
 /**
 \param objectStack Список объектов
+\param size Размер списка
 */
 void initObjectStack(ObjectStack& objectStack, int size);
 
@@ -78,6 +85,7 @@ void initObjectStack(ObjectStack& objectStack, int size);
 /**
 \param parent Динамический объект
 \param object Статический объект
+\return double Расстояние до точки касания со статическим объектом
 */
 double getDistance(Object& parent, Object& object);
 
@@ -95,6 +103,12 @@ void setObject(Object& parent, ObjectStack& objectStack, Object& object);
 */
 void sortObjectStack(ObjectStack& objectStack);
 
+///Разрешение столкновения со всеми объектами списка
+/**
+\param parent Динамический объект
+\param objectStack Список статических объектов
+\return int Битовая маска
+*/
 int resolveObjectStack(Object& parent, ObjectStack& objectStack);
 
 ///@}

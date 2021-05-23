@@ -1,4 +1,5 @@
 #pragma once
+#include "player.hpp"
 #include "tilemap.hpp"
 #include "platformFactory.hpp"
 
@@ -16,8 +17,10 @@
 \param platforms Список платформ
 */
 struct Level{
+    Player player;
     Tilemap ground;
     PlatformFactory platforms;
+    PlatformFactory exit;
 };
 
 ///Инициализация уровня
