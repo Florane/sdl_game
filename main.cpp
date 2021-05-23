@@ -72,8 +72,8 @@ int main(int argc, char** argv)
         debug_info_str[i] = (char*)calloc(64,sizeof(char));
     }
 
-    const bool debug_movement = true;
-    const bool debug_physics = true;
+    const bool debug_movement = false;
+    const bool debug_physics = false;
     bool debug_collision = true;
     Vector debug_normal = {0,0};
     int debug_stack_iter = 0;
@@ -317,30 +317,29 @@ int main(int argc, char** argv)
             }
 
             //Физика
-            stepPlatforms(level.platforms);
-            Rect buffer = tileToRect(debug_cursor_pos.x,debug_cursor_pos.y);
-            Rect buffer1 = tileToRect(debug_cursor_pos.x+1,debug_cursor_pos.y);
-            Rect buffer2 = tileToRect(debug_cursor_pos.x+2,debug_cursor_pos.y);
-            if(debug_physics)
-            {
-                Object object1;
-                initObject(object1, player.player, player.movement);
-                tilemapToStack(object1,level.ground,objects);
-                sortObjectStack(objects);
-                int bitData;
-                bitData = resolveObjectStack(object1,objects);
-                debug_collision = bitData%2;
-                player.isOnGround = bitData/2%2;
-                debug_stack_iter = objects.iter;
-                objects.iter = 0;
-                player.movement = object1.movement;
-            }
-            else
+            Object object1;
+            initObject(object1, player.player, player.movement);
+
+            tilemapToStack(object1,level.ground,objects);
+            platformsToStack(object1,level.platforms,objects);
+
+            sortObjectStack(objects);
+
+            int bitData;
+            bitData = resolveObjectStack(object1,objects);
+
+            debug_collision = bitData%2;
+            player.isOnGround = bitData/2%2;
+            debug_stack_iter = objects.iter;
+            objects.iter = 0;
+            if(!debug_physics)
             {
 
+                player.movement = object1.movement;
             }
 
             //Изменение положения
+            stepPlatforms(level.platforms);
             stepPlayer(player);
         }
 

@@ -19,11 +19,12 @@ void loadLevel(const char* name, Level& level)
 {
     //загрузка земли
     char* groundName = (char*)calloc(strlen(name)+12,sizeof(char));
-    strcpy(groundName,name);
 
     #ifdef __linux__
+        strcpy(groundName,name);
         strncat(groundName,"tilemap.txt",12);
     #elif _WIN32
+        strcpy_s(groundName,strlen(name)+12,name);
         strncat_s(groundName,strlen(name)+12,"tilemap.txt",12);
     #endif
 
@@ -33,10 +34,11 @@ void loadLevel(const char* name, Level& level)
 
     //загрузка тайлов
     char* platformName = (char*)calloc(strlen(name)+14,sizeof(char));
-    strcpy(platformName,name);
     #ifdef __linux__
+        strcpy(platformName,name);
         strncat(platformName,"platforms.txt",14);
     #elif _WIN32
+        strcpy_s(platformName,strlen(name)+14,name);
         strncat_s(platformName,strlen(name)+14,"platforms.txt",14);
     #endif
 

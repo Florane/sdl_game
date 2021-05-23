@@ -3,7 +3,7 @@
 
 void initPlayer(Player& player)
 {
-    player.player = {0,0,100,100};
+    player.player = {100,0,100,100};
     player.movement = {0,0};
     player.isOnGround = false;
 }
@@ -45,8 +45,8 @@ void movePlayer_floaty(Player& player, char* keys)
 void movePlayer_actually(Player& player, char* keys)
 {
     const double speed = 3.0;
-    const double gravity = 0.1;
-    const double jump = 5.0;
+    const double gravity = 0.2;
+    const double jump = 7.0;
     if(keys[0] == 1)
         player.movement.x = -speed;
     else if(keys[1] == 1)

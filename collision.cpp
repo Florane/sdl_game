@@ -22,7 +22,6 @@ void initObject(Object& object)
 
 bool collideObjects(Object& object1, Object& object2, Vector& contact, Vector& normal, double& time)
 {
-    object1.movement = subVectors(object1.movement,object2.movement);
     if(object1.movement.x == 0 && object1.movement.y == 0)
         return false;
 
@@ -31,7 +30,8 @@ bool collideObjects(Object& object1, Object& object2, Vector& contact, Vector& n
     expandedTarget.pos = subVectors(object2.position.pos,buffer);
     expandedTarget.size = addVectors(object2.position.size,object1.position.size);
 
-    if(collideRayRect(addVectors(object1.position.pos,buffer),object1.movement,expandedTarget, contact, normal, time))
+    bool res = collideRayRect(addVectors(object1.position.pos,buffer),object1.movement,expandedTarget, contact, normal, time);
+    if(res)
     {
         return (time >= 0.0 && time < 1.0);
     }
@@ -41,12 +41,14 @@ bool collideObjects(Object& object1, Object& object2, Vector& contact, Vector& n
 bool resolveObjects(Object& object1, Object& object2, Vector& contact, Vector& normal, double& time)
 {
     time = 0.0;
-    bool ret = false;
-    if(collideObjects(object1,object2,contact,normal,time))
+    object1.movement = subVectors(object1.movement,object2.movement);
+    bool ret = collideObjects(object1,object2,contact,normal,time);
+    if(ret)
     {
         Vector buffer = {_abs(object1.movement.x)*(1-time),_abs(object1.movement.y)*(1-time)};
         object1.movement = addVectors(object1.movement,multVectors(normal,buffer));
-        ret = true;
+        if(normal.y == -1)
+            object1.movement.x += object2.movement.x;
     }
     object1.movement = addVectors(object1.movement,object2.movement);
     return ret;
