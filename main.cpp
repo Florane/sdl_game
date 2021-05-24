@@ -126,9 +126,15 @@ int main(int argc, char** argv)
     ObjectStack exits;
     initObjectStack(exits,2);
 
+    //Фоны для уровней
+    SDL_Texture** levelBG = (SDL_Texture**)calloc(1,sizeof(SDL_Texture*));
+    loadTexture("textures/bg.bmp",renderer,levelBG);
+
     //Игрок
-    SDL_Texture* playerTexture;
-    loadTexture("textures/cat.bmp",renderer,&playerTexture);
+    SDL_Texture* leftPlayerTexture, *rightPlayerTexture;
+    loadTexture("textures/cat.bmp",renderer,&leftPlayerTexture);
+    loadTexture("textures/cat.bmp",renderer,&rightPlayerTexture);
+    bool leftPlayerTurn = false;
 
     //Текстуры тайлов
     SDL_Texture** groundTileset = (SDL_Texture**)calloc(3,sizeof(SDL_Texture*));
@@ -290,6 +296,8 @@ int main(int argc, char** argv)
                         loadLevel("levels/debug/",level);
                     else
                         loadLevel(c,level);
+
+                    level.id = levelMenu.selected;
                 }
                 if(pressed[4] == 1)
                     pressed[4] = -1;
@@ -309,6 +317,10 @@ int main(int argc, char** argv)
                 state = 2;
                 pressed[5] = -1;
             }
+            if(pressed[0])
+                leftPlayerTurn = true;
+            if(pressed[1])
+                leftPlayerTurn = false;
 
             //Движение
             if(debug_movement)
@@ -375,8 +387,13 @@ int main(int argc, char** argv)
         }
         else if(state >= 3 && state <= 100)
         {
+            SDL_Rect bgRect = {0,0,800,600};
+            drawTexture(renderer, *(levelBG+(level.id<1 ? level.id : 0)), &bgRect);
             SDL_Rect playerRect = {350,250,100,100};
-            drawTexture(renderer, playerTexture, &playerRect);
+            if(leftPlayerTurn)
+                drawTexture(renderer, leftPlayerTexture, &playerRect);
+            else
+                drawTexture(renderer, rightPlayerTexture, &playerRect);
             drawTilemap(renderer, level.ground, level.player, groundTileset);
             drawPlatforms(renderer, level.platforms, level.player, platformTexture);
             drawPlatforms(renderer, level.exit, level.player, exitTexture);

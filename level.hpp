@@ -17,6 +17,7 @@
 \param platforms Список платформ
 */
 struct Level{
+    int id;
     Player player;
     Tilemap ground;
     PlatformFactory platforms;
