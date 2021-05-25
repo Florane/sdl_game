@@ -55,7 +55,7 @@ int main(int argc, char** argv)
     const bool debug_cursor = true;
     Vector debug_cursor_pos = {0,0};
 
-    const bool debug_info = true;
+    const bool debug_info = false;
     int debug_font_size = 20;
     TTF_Font* debug_font = TTF_OpenFont("DejaVuSansMono.ttf", debug_font_size*2);
 
@@ -149,6 +149,11 @@ int main(int argc, char** argv)
     //Текстура выхода
     SDL_Texture* exitTexture;
     loadTexture("textures/exit.bmp",renderer,&exitTexture);
+
+    //Текст обычный
+    int font_size = 25;
+    TTF_Font* font = TTF_OpenFont("DejaVuSansMono.ttf", font_size*2);
+    int levelTime = 0;
 
     //Проверка нажатых кнопок (char для экономии памяти)
     //0 - стандартное состояние
@@ -298,6 +303,7 @@ int main(int argc, char** argv)
                         loadLevel(c,level);
 
                     level.id = levelMenu.selected;
+                    levelTime = 0;
                 }
                 if(pressed[4] == 1)
                     pressed[4] = -1;
@@ -365,6 +371,7 @@ int main(int argc, char** argv)
             //Изменение положения
             stepPlatforms(level.platforms);
             stepPlayer(level.player);
+            levelTime++;
         }
 
         SDL_SetRenderDrawColor(renderer, 51, 153, 255, 0);
@@ -397,6 +404,21 @@ int main(int argc, char** argv)
             drawTilemap(renderer, level.ground, level.player, groundTileset);
             drawPlatforms(renderer, level.platforms, level.player, platformTexture);
             drawPlatforms(renderer, level.exit, level.player, exitTexture);
+
+            char timeText[64];
+            #ifdef __linux__
+                sprintf(timeText,"%02d:%02d.%02d",levelTime/50/60,levelTime/50%60,levelTime%50*2);
+            #elif _WIN32
+                sprintf_s(timeText,"%02d:%02d.%02d",levelTime/50/60,levelTime/50%60,levelTime%50*2);
+            #endif
+            char* text = (char*)calloc(strlen(timeText)+1,sizeof(char));
+            #ifdef __linux__
+                strcpy(text,timeText);
+            #elif _WIN32
+                strcpy_s(text,64,timeText);
+            #endif
+
+            drawText(renderer,font,text,0,0,font_size);
 
             if(debug_cursor) //Дебаг курсор
             {

@@ -1,0 +1,7 @@
+*.zip
+*.o
+run
+compile
+Doxyfile
+xml
+html
