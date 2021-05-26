@@ -14,6 +14,7 @@
 #include "tilemap.hpp"
 #include "player.hpp"
 #include "level.hpp"
+#include "score.hpp"
 #include "complex_menu.hpp"
 #include "complex_tilemap.hpp"
 #include "complex_platforms.hpp"
@@ -121,10 +122,23 @@ int main(int argc, char** argv)
     initLevel(level);
 
     ObjectStack objects;
-    initObjectStack(objects,2);
+    initObjectStack(objects,13);
 
     ObjectStack exits;
     initObjectStack(exits,2);
+
+    ObjectStack dangers;
+    initObjectStack(dangers,13);
+
+    ObjectStack coins;
+    initObjectStack(coins,13);
+
+    //Внутриуровневое время
+    int levelTime = 0;
+    //Внутриуровневое число очков
+    int levelScore = 0;
+    bool levelScoreLoaded = false;
+    int damageTimer = 0;
 
     //Фоны для уровней
     SDL_Texture** levelBG = (SDL_Texture**)calloc(1,sizeof(SDL_Texture*));
@@ -142,6 +156,11 @@ int main(int argc, char** argv)
     loadTexture("textures/tiles/grass.bmp",renderer,groundTileset+1);
     loadTexture("textures/tiles/box.bmp",renderer,groundTileset+2);
 
+    //Текстуры тайлов
+    SDL_Texture** spikeTileset = (SDL_Texture**)calloc(2,sizeof(SDL_Texture*));
+    loadTexture("textures/tiles/box.bmp",renderer,spikeTileset);
+    loadTexture("textures/tiles/box.bmp",renderer,spikeTileset+1);
+
     //Текстура платформы
     SDL_Texture* platformTexture;
     loadTexture("textures/platform.bmp",renderer,&platformTexture);
@@ -150,10 +169,13 @@ int main(int argc, char** argv)
     SDL_Texture* exitTexture;
     loadTexture("textures/exit.bmp",renderer,&exitTexture);
 
+    //Текстура врага
+    SDL_Texture* enemyTexture;
+    loadTexture("textures/exit.bmp",renderer,&enemyTexture);
+
     //Текст обычный
     int font_size = 25;
     TTF_Font* font = TTF_OpenFont("DejaVuSansMono.ttf", font_size*2);
-    int levelTime = 0;
 
     //Проверка нажатых кнопок (char для экономии памяти)
     //0 - стандартное состояние
@@ -271,8 +293,24 @@ int main(int argc, char** argv)
             if(mouse.x != prevMouse.x || mouse.y != prevMouse.y)
             {
                 int buffer = selectButton(&levelMenu,&mouse);
-                if(buffer != -1)
+
+                if(buffer != -1 && !levelScoreLoaded)
+                {
+                    levelScoreLoaded = true;
+                    char c[64];
+                    #ifdef __linux__
+                        sprintf(c,"levels/%d/score.txt",buffer);
+                    #elif _WIN32
+                        sprintf_s(c,64,"levels/%d/score.txt",buffer);
+                    #endif
+                    loadScore(c,&levelScore,&levelTime);
+                    printf("%d\n",levelScore);
                     levelMenu.selected = buffer;
+                }
+                else if(buffer < 0)
+                {
+                    levelScoreLoaded = false;
+                }
             }
             if(pressed[1] == 1)
             {
@@ -304,6 +342,8 @@ int main(int argc, char** argv)
 
                     level.id = levelMenu.selected;
                     levelTime = 0;
+                    levelScore = 500;
+                    levelScoreLoaded = false;
                 }
                 if(pressed[4] == 1)
                     pressed[4] = -1;
@@ -359,13 +399,53 @@ int main(int argc, char** argv)
                 level.player.movement = object1.movement;
             }
 
-            platformsToStack(object1,level.exit,objects);
-            sortObjectStack(objects);
+            platformsToStack(object1,level.exit,exits);
+            sortObjectStack(exits);
 
-            bitData = resolveObjectStack(object1,objects);
+            bitData = resolveObjectStack(object1,exits);
+            exits.iter = 0;
             if(bitData>0)
             {
+                char c[64];
+                #ifdef __linux__
+                    sprintf(c,"levels/%d/score.txt",level.id);
+                #elif _WIN32
+                    sprintf_s(c,64,"levels/%d/score.txt",level.id);
+                #endif
+                saveScore(c,levelScore,levelTime);
                 state = 2;
+            }
+
+            platformsToStack(object1,level.enemies,dangers);
+            tilemapToStack(object1,level.spikes,dangers);
+            sortObjectStack(dangers);
+
+            bitData = resolveObjectStack(object1,dangers);
+            dangers.iter = 0;
+            if(bitData>0 && damageTimer <= 0)
+            {
+                levelScore /= 2;
+                damageTimer = 100;
+            }
+            else if(damageTimer > 0)
+                damageTimer--;
+            if(levelScore == 0)
+            {
+                state = 2;
+            }
+
+            tilemapToStack(object1,level.coins,coins);
+            sortObjectStack(coins);
+
+            bitData = resolveObjectStack(object1,coins);
+            coins.iter = 0;
+            if(bitData > 0)
+            {
+                int x,y;
+                x = (coins.objects[bitData/4].position.pos.x)/50;
+                y = (coins.objects[bitData/4].position.pos.y)/50;
+                level.coins.tiles[x][y] = 0;
+                levelScore+=100;
             }
 
             //Изменение положения
@@ -391,6 +471,36 @@ int main(int argc, char** argv)
         {
             drawButtons(renderer, &levelMenuBg, levelMenuTextures);
             drawButtons(renderer, &levelMenu, levelMenuTextures+1);
+            if(levelScoreLoaded)
+            {
+                SDL_Rect bgRect = {mouse.x,mouse.y,25*4,50};
+
+                char timeText1[64], timeText2[64];
+                #ifdef __linux__
+                    sprintf(timeText1,"%02d:%02d.%02d",levelTime/50/60,levelTime/50%60,levelTime%50*2);
+                    sprintf(timeText2,"%d",levelScore);
+                #elif _WIN32
+                    sprintf_s(timeText1,"%02d:%02d.%02d",levelTime/50/60,levelTime/50%60,levelTime%50*2);
+                    sprintf_s(timeText2,"%d",levelScore);
+                #endif
+
+                char* text1 = (char*)calloc(strlen(timeText1)+1,sizeof(char));
+                char* text2 = (char*)calloc(strlen(timeText2)+1,sizeof(char));
+                #ifdef __linux__
+                    strcpy(text1,timeText1);
+                    strcpy(text2,timeText2);
+                #elif _WIN32
+                    strcpy_s(text1,64,timeText1);
+                    strcpy_s(text2,64,timeText2);
+                #endif
+
+                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
+                SDL_RenderFillRect(renderer, &bgRect);
+                drawText(renderer,font,text1,mouse.x,mouse.y,font_size);
+                drawText(renderer,font,text2,mouse.x,mouse.y+25,font_size);
+                free(text1);
+                free(text2);
+            }
         }
         else if(state >= 3 && state <= 100)
         {
@@ -402,23 +512,42 @@ int main(int argc, char** argv)
             else
                 drawTexture(renderer, rightPlayerTexture, &playerRect);
             drawTilemap(renderer, level.ground, level.player, groundTileset);
+            drawTilemap(renderer, level.spikes, level.player, spikeTileset);
+            drawTilemap(renderer, level.coins, level.player, spikeTileset+1);
             drawPlatforms(renderer, level.platforms, level.player, platformTexture);
+            drawPlatforms(renderer, level.enemies, level.player, enemyTexture);
             drawPlatforms(renderer, level.exit, level.player, exitTexture);
 
-            char timeText[64];
+            //Рисует время
+            char timeText1[64];
             #ifdef __linux__
-                sprintf(timeText,"%02d:%02d.%02d",levelTime/50/60,levelTime/50%60,levelTime%50*2);
+                sprintf(timeText1,"%02d:%02d.%02d",levelTime/50/60,levelTime/50%60,levelTime%50*2);
             #elif _WIN32
-                sprintf_s(timeText,"%02d:%02d.%02d",levelTime/50/60,levelTime/50%60,levelTime%50*2);
+                sprintf_s(timeText1,"%02d:%02d.%02d",levelTime/50/60,levelTime/50%60,levelTime%50*2);
             #endif
-            char* text = (char*)calloc(strlen(timeText)+1,sizeof(char));
+            char* text1 = (char*)calloc(strlen(timeText1)+1,sizeof(char));
             #ifdef __linux__
-                strcpy(text,timeText);
+                strcpy(text1,timeText1);
             #elif _WIN32
-                strcpy_s(text,64,timeText);
+                strcpy_s(text1,64,timeText1);
             #endif
+            drawText(renderer,font,text1,0,0,font_size);
+            free(text1);
 
-            drawText(renderer,font,text,0,0,font_size);
+            char timeText2[64];
+            #ifdef __linux__
+                sprintf(timeText2,"%d",levelScore);
+            #elif _WIN32
+                sprintf_s(timeText2,"%d",levelScore);
+            #endif
+            char* text2 = (char*)calloc(strlen(timeText2)+1,sizeof(char));
+            #ifdef __linux__
+                strcpy(text2,timeText2);
+            #elif _WIN32
+                strcpy_s(text2,64,timeText2);
+            #endif
+            drawText(renderer,font,text2,0,25,font_size);
+            free(text2);
 
             if(debug_cursor) //Дебаг курсор
             {

@@ -20,8 +20,11 @@ struct Level{
     int id;
     Player player;
     Tilemap ground;
+    Tilemap spikes;
+    Tilemap coins;
     PlatformFactory platforms;
     PlatformFactory exit;
+    PlatformFactory enemies;
 };
 
 ///Инициализация уровня

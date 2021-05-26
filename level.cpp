@@ -7,13 +7,21 @@ void initLevel(Level& level)
 {
     initPlayer(level.player);
     initTilemap(level.ground);
+    initTilemap(level.spikes);
+    initTilemap(level.coins);
     initPlatformFactory(level.platforms);
+    initPlatformFactory(level.exit);
+    initPlatformFactory(level.enemies);
 }
 
 void freeLevel(Level& level)
 {
     freeTilemap(level.ground);
+    freeTilemap(level.spikes);
+    freeTilemap(level.coins);
     freePlatformFactory(level.platforms);
+    freePlatformFactory(level.exit);
+    freePlatformFactory(level.enemies);
 }
 
 void loadLevel(const char* name, Level& level)
@@ -46,6 +54,34 @@ void loadLevel(const char* name, Level& level)
     loadTilemap(groundName,level.ground);
     free(groundName);
 
+    char* spikeName = (char*)calloc(strlen(name)+11,sizeof(char));
+
+    #ifdef __linux__
+        strcpy(spikeName,name);
+        strncat(spikeName,"spikes.txt",11);
+    #elif _WIN32
+        strcpy_s(spikeName,strlen(name)+11,name);
+        strncat_s(spikeName,strlen(name)+11,"spikes.txt",11);
+    #endif
+
+
+    loadTilemap(spikeName,level.spikes);
+    free(spikeName);
+
+    char* coinName = (char*)calloc(strlen(name)+10,sizeof(char));
+
+    #ifdef __linux__
+        strcpy(coinName,name);
+        strncat(coinName,"coins.txt",10);
+    #elif _WIN32
+        strcpy_s(coinName,strlen(name)+10,name);
+        strncat_s(coinName,strlen(name)+10,"coins.txt",10);
+    #endif
+
+
+    loadTilemap(coinName,level.coins);
+    free(coinName);
+
     //загрузка тайлов
     char* platformName = (char*)calloc(strlen(name)+14,sizeof(char));
     #ifdef __linux__
@@ -70,4 +106,16 @@ void loadLevel(const char* name, Level& level)
 
     loadPlatforms(exitName,level.exit);
     free(exitName);
+
+    char* enemyName = (char*)calloc(strlen(name)+12,sizeof(char));
+    #ifdef __linux__
+        strcpy(enemyName,name);
+        strncat(enemyName,"enemies.txt",12);
+    #elif _WIN32
+        strcpy_s(enemyName,strlen(name)+12,name);
+        strncat_s(enemyName,strlen(name)+12,"enemies.txt",12);
+    #endif
+
+    loadPlatforms(enemyName,level.enemies);
+    free(enemyName);
 }

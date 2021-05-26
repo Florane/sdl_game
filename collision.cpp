@@ -120,7 +120,7 @@ int resolveObjectStack(Object& parent, ObjectStack& objectStack)
         if(resolveObjects(parent,objectStack.objects[j],contact,normal,time))
         {
             buffer += 1;
-            buffer += i*4;
+            buffer += j*4;
         }
         if(normal.y == -1 && buffer != 0)
             buffer += 2;
