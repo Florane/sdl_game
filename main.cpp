@@ -196,6 +196,9 @@ int main(int argc, char** argv)
     //Внутриигровой таймер
     int timer = 0;
 
+    //Пауза
+    bool paused = false;
+
     //Мышь
     Vector mouse = {0,0}, prevMouse = {0,0};
     char mouseClick = 0;
@@ -241,7 +244,7 @@ int main(int argc, char** argv)
         prevMouse = mouse;
         int x,y;
         SDL_GetMouseState(&x,&y);
-        mouse = {x,y};
+        mouse = {(double)x,(double)y};
 
         //Взаимодействие
         if(state == 0) // Таймер для главного экрана
@@ -277,6 +280,8 @@ int main(int argc, char** argv)
                     state = 2;
                 else if(mainMenu.selected == 1)
                     state = -1;
+                else if(mainMenu.selected == 2)
+                    state = 0;
                 if(pressed[4] == 1)
                     pressed[4] = -1;
                 if(mouseClick == 1)
@@ -363,19 +368,23 @@ int main(int argc, char** argv)
                 state = 2;
                 pressed[5] = -1;
             }
+            if(pressed[6] == 1)
+            {
+                paused = !paused;
+                pressed[6] = -1;
+            }
             if(pressed[0])
                 leftPlayerTurn = true;
             if(pressed[1])
                 leftPlayerTurn = false;
 
             //Движение
-            if(debug_movement)
+            if(!paused)
             {
-                movePlayer_floaty(level.player,pressed);
-            }
-            else
-            {
-                movePlayer_actually(level.player,pressed);
+                if(debug_movement)
+                    movePlayer_floaty(level.player,pressed);
+                else
+                    movePlayer_actually(level.player,pressed);
             }
 
             //Физика
@@ -449,9 +458,12 @@ int main(int argc, char** argv)
             }
 
             //Изменение положения
-            stepPlatforms(level.platforms);
-            stepPlayer(level.player);
-            levelTime++;
+            if(!paused)
+            {
+                stepPlatforms(level.platforms);
+                stepPlayer(level.player);
+                levelTime++;
+            }
         }
 
         SDL_SetRenderDrawColor(renderer, 51, 153, 255, 0);
