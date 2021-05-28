@@ -77,21 +77,27 @@ void initObjectStack(ObjectStack& objectStack, int size)
 
 double getDistance(Object& parent, Object& object)
 {
+    //Находим центр динамического объекта
     Vector pos1 = {parent.position.pos.x+(parent.position.size.x/2),parent.position.pos.y+(parent.position.size.y/2)};
     Vector contact,q; double w;
+
+    //contact сожержит точку соприкосновения
     collideObjects(parent,object,contact,q,w);
     return ((pos1.x-contact.x)*(pos1.x-contact.x))+((pos1.y-contact.y)*(pos1.y-contact.y));
 }
 
 void setObject(Object& parent, ObjectStack& objectStack, Object& object)
 {
+    //Добавляем объект и расстояние до него в конец списка
     objectStack.objects[objectStack.iter] = object;
     Dist dist = {getDistance(parent,object),objectStack.iter};
     objectStack.distances[objectStack.iter] = dist;
 
+    //Смещаем размер списка
     objectStack.iter++;
     if(objectStack.iter == objectStack.size)
     {
+        //Смещаем максимальный размер по необходимости
         objectStack.size++;
         objectStack.objects = (Object*)realloc(objectStack.objects,sizeof(Object)*objectStack.size);
         objectStack.distances = (Dist*)realloc(objectStack.distances,sizeof(Dist)*objectStack.size);
@@ -106,11 +112,16 @@ int comp(const Dist* a, const Dist* b)
 
 void sortObjectStack(ObjectStack& objectStack)
 {
+    //Функция из stdlib.h
     qsort(objectStack.distances,objectStack.iter,sizeof(Dist),(int(*) (const void *, const void *)) comp);
 }
 
 int resolveObjectStack(Object& parent, ObjectStack& objectStack)
 {
+    //Битовые данные столкновения
+    //Бит 0 - было ли столкновение
+    //Бит 1 - было ли столкновение сверху статического объекта
+    //Бит 2+ - номер объекта, с которым произошло столкновение
     int bitData = 0;
     for(int i = 0;i < objectStack.iter;i++)
     {

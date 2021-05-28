@@ -496,8 +496,8 @@ int main(int argc, char** argv)
                     sprintf_s(timeText2,"%d",levelScore);
                 #endif
 
-                char* text1 = (char*)calloc(strlen(timeText1)+1,sizeof(char));
-                char* text2 = (char*)calloc(strlen(timeText2)+1,sizeof(char));
+                char* text1 = (char*)calloc(64,sizeof(char));
+                char* text2 = (char*)calloc(64,sizeof(char));
                 #ifdef __linux__
                     strcpy(text1,timeText1);
                     strcpy(text2,timeText2);
@@ -537,7 +537,7 @@ int main(int argc, char** argv)
             #elif _WIN32
                 sprintf_s(timeText1,"%02d:%02d.%02d",levelTime/50/60,levelTime/50%60,levelTime%50*2);
             #endif
-            char* text1 = (char*)calloc(strlen(timeText1)+1,sizeof(char));
+            char* text1 = (char*)calloc(64,sizeof(char));
             #ifdef __linux__
                 strcpy(text1,timeText1);
             #elif _WIN32
@@ -552,7 +552,7 @@ int main(int argc, char** argv)
             #elif _WIN32
                 sprintf_s(timeText2,"%d",levelScore);
             #endif
-            char* text2 = (char*)calloc(strlen(timeText2)+1,sizeof(char));
+            char* text2 = (char*)calloc(64,sizeof(char));
             #ifdef __linux__
                 strcpy(text2,timeText2);
             #elif _WIN32
